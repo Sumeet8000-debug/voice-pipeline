@@ -1,0 +1,35 @@
+﻿# ============ Rust ============
+/target/
+**/*.rs.bk
+
+# ============ ONNX Runtime (large binaries) ============
+*.dll
+*.so
+*.dylib
+onnxruntime-*/
+ort*.zip
+ort131.zip
+
+# ============ ONNX model files (164 MB total — download via download_models.ps1) ============
+*.onnx
+
+# ============ Python ============
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# ============ Generated audio ============
+*.wav
+
+# ============ Logs & misc ============
+*.log
+build_log.txt
+*.old
+inspect.py
+inspect.pyc
+
+# ============ OS junk ============
+Thumbs.db
+.DS_Store

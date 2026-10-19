@@ -1,0 +1,10 @@
+﻿[package]
+name = "pocket-tts-prototype"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ort = { version = "=2.0.0-rc.14", features = ["load-dynamic"] }
+hound = "3.5"
+anyhow = "1.0"
+ndarray = "0.17"
