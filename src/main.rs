@@ -122,11 +122,21 @@ fn apply_alba(state: &mut HashMap<String, StateData>, manifest: &[StateEntry]) -
     let data = fs::read(format!("{}/alba.safetensors", BASE))?;
     let st = SafeTensors::deserialize(&data).map_err(|e| anyhow::anyhow!("safetensors: {:?}", e))?;
     for entry in manifest {
-        let key = format!("{}/{}", entry.module, entry.key);
-        let tensor = match st.tensor(&key) {
-            Ok(t) => t,
-            Err(_) => continue,
+        let direct_key = format!("{}/{}", entry.module, entry.key);
+        let tensor = if let Ok(t) = st.tensor(&direct_key) {
+            Some(t)
+        } else if entry.key == "step" {
+            let offset_key = format!("{}/offset", entry.module);
+            let end_offset_key = format!("{}/end_offset", entry.module);
+            if st.tensor(&end_offset_key).is_err() {
+                st.tensor(&offset_key).ok()
+            } else {
+                None
+            }
+        } else {
+            None
         };
+        let tensor = match tensor { Some(t) => t, None => continue };
         let shape: Vec<usize> = tensor.shape().to_vec();
         match entry.dtype.as_str() {
             "float32" => {
@@ -212,6 +222,12 @@ fn main() -> Result<()> {
     let mut lm_state = init_state(&bundle.flow_lm_state_manifest);
     apply_alba(&mut lm_state, &bundle.flow_lm_state_manifest)?;
     println!("LM state: {} (alba applied)", lm_state.len());
+    if let Some(StateData::I64(s)) = lm_state.get("state_2") {
+        println!("  state_2 (offset) = {:?}", s.iter().copied().collect::<Vec<i64>>());
+    }
+    if let Some(StateData::I64(s)) = lm_state.get("state_5") {
+        println!("  state_5 (offset) = {:?}", s.iter().copied().collect::<Vec<i64>>());
+    }
 
     let mut mimi_state = init_state(&bundle.mimi_state_manifest);
     println!("Mimi state: {}", mimi_state.len());
